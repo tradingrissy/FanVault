@@ -76,6 +76,10 @@ export default function DashboardPage() {
                 style={{background:'#00aff0',color:'#000',border:'none',borderRadius:'8px',padding:'12px',fontSize:'14px',fontWeight:'700',cursor:'pointer'}}>
                 Upload new content
               </button>
+              <button onClick={() => router.push('/tiers')}
+                style={{background:'transparent',color:'#fff',border:'0.5px solid #00aff040',borderRadius:'8px',padding:'12px',fontSize:'14px',cursor:'pointer'}}>
+                Manage subscription tiers
+              </button>
               <button onClick={() => router.push('/messages')}
                 style={{background:'transparent',color:'#fff',border:'0.5px solid #333',borderRadius:'8px',padding:'12px',fontSize:'14px',cursor:'pointer'}}>
                 View messages
@@ -91,7 +95,7 @@ export default function DashboardPage() {
             <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
               {[
                 {label:'Profile photo',done:!!profile?.avatar_url},
-                {label:'Bio written',done:!!profile?.bio},
+                {label:'Bio written',done:!!bio},
                 {label:'Subscription tier set',done:false},
                 {label:'First post uploaded',done:stats.posts > 0},
                 {label:'Payout account connected',done:!!profile?.stripe_account_id},
