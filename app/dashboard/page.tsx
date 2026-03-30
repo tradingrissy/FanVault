@@ -7,8 +7,13 @@ export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
-  const [stats, setStats] = useState({ subscribers: 0, earnings: 0, posts: 0, messages: 0 })
+  const [stats, setStats] = useState({ subscribers: 0, earnings: 0, posts: 0 })
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [displayName, setDisplayName] = useState('')
+  const [username, setUsername] = useState('')
+  const [bio, setBio] = useState('')
 
   useEffect(() => {
     async function load() {
@@ -17,15 +22,27 @@ export default function DashboardPage() {
       setUser(user)
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
       setProfile(profile)
+      setDisplayName(profile?.display_name || '')
+      setUsername(profile?.username || '')
+      setBio(profile?.bio || '')
       const { count: subCount } = await supabase.from('user_subscriptions').select('*', { count: 'exact', head: true }).eq('creator_id', user.id).eq('status', 'active')
       const { count: postCount } = await supabase.from('content').select('*', { count: 'exact', head: true }).eq('creator_id', user.id)
       const { data: transactions } = await supabase.from('transactions').select('creator_payout').eq('creator_id', user.id)
       const totalEarnings = transactions?.reduce((sum, t) => sum + (t.creator_payout || 0), 0) || 0
-      setStats({ subscribers: subCount || 0, earnings: totalEarnings, posts: postCount || 0, messages: 0 })
+      setStats({ subscribers: subCount || 0, earnings: totalEarnings, posts: postCount || 0 })
       setLoading(false)
     }
     load()
   }, [])
+
+  async function saveProfile() {
+    if (!user) return
+    setSaving(true)
+    await supabase.from('profiles').update({ display_name: displayName, username, bio }).eq('id', user.id)
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 3000)
+  }
 
   if (loading) return <div style={{background:'#0a0a0a',minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',color:'#555'}}>Loading...</div>
 
@@ -63,7 +80,7 @@ export default function DashboardPage() {
                 style={{background:'transparent',color:'#fff',border:'0.5px solid #333',borderRadius:'8px',padding:'12px',fontSize:'14px',cursor:'pointer'}}>
                 View messages
               </button>
-              <button onClick={() => router.push(`/creator/${profile?.username}`)}
+              <button onClick={() => router.push(`/creator/${username || profile?.username}`)}
                 style={{background:'transparent',color:'#fff',border:'0.5px solid #333',borderRadius:'8px',padding:'12px',fontSize:'14px',cursor:'pointer'}}>
                 View my profile
               </button>
@@ -95,22 +112,23 @@ export default function DashboardPage() {
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
             <div>
               <label style={{fontSize:'12px',color:'#555',display:'block',marginBottom:'6px'}}>Display name</label>
-              <input defaultValue={profile?.display_name || ''} placeholder="Your name"
+              <input value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Your name"
                 style={{width:'100%',background:'#0d0d0d',border:'0.5px solid #222',borderRadius:'8px',padding:'10px 14px',fontSize:'14px',color:'#fff',outline:'none',boxSizing:'border-box'}}/>
             </div>
             <div>
               <label style={{fontSize:'12px',color:'#555',display:'block',marginBottom:'6px'}}>Username</label>
-              <input defaultValue={profile?.username || ''} placeholder="@username"
+              <input value={username} onChange={e => setUsername(e.target.value)} placeholder="@username"
                 style={{width:'100%',background:'#0d0d0d',border:'0.5px solid #222',borderRadius:'8px',padding:'10px 14px',fontSize:'14px',color:'#fff',outline:'none',boxSizing:'border-box'}}/>
             </div>
             <div style={{gridColumn:'1/-1'}}>
               <label style={{fontSize:'12px',color:'#555',display:'block',marginBottom:'6px'}}>Bio</label>
-              <textarea defaultValue={profile?.bio || ''} placeholder="Tell fans about yourself..." rows={3}
+              <textarea value={bio} onChange={e => setBio(e.target.value)} placeholder="Tell fans about yourself..." rows={3}
                 style={{width:'100%',background:'#0d0d0d',border:'0.5px solid #222',borderRadius:'8px',padding:'10px 14px',fontSize:'14px',color:'#fff',outline:'none',resize:'vertical',boxSizing:'border-box'}}/>
             </div>
           </div>
-          <button style={{background:'#00aff0',color:'#000',border:'none',borderRadius:'8px',padding:'10px 24px',fontSize:'14px',fontWeight:'700',cursor:'pointer',marginTop:'16px'}}>
-            Save changes
+          <button onClick={saveProfile} disabled={saving}
+            style={{background:saved?'#22c55e':'#00aff0',color:'#000',border:'none',borderRadius:'8px',padding:'10px 24px',fontSize:'14px',fontWeight:'700',cursor:'pointer',marginTop:'16px'}}>
+            {saving ? 'Saving...' : saved ? 'Saved!' : 'Save changes'}
           </button>
         </div>
       </div>
