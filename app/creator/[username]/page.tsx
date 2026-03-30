@@ -49,7 +49,9 @@ export default function CreatorProfilePage() {
       <div style={{maxWidth:'900px',margin:'0 auto',padding:'0 24px 48px'}}>
         <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',marginTop:'-48px',marginBottom:'16px',flexWrap:'wrap',gap:'12px'}}>
           <div style={{width:'96px',height:'96px',borderRadius:'50%',border:'4px solid #0a0a0a',background:'#00aff0',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'32px',fontWeight:'700',color:'#000'}}>
-            {creator.display_name?.[0]?.toUpperCase() || creator.username?.[0]?.toUpperCase()}
+            {creator.avatar_url
+              ? <img src={creator.avatar_url} style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} />
+              : creator.display_name?.[0]?.toUpperCase() || creator.username?.[0]?.toUpperCase()}
           </div>
           <div style={{display:'flex',gap:'8px'}}>
             <button onClick={() => router.push('/messages')}
@@ -91,28 +93,29 @@ export default function CreatorProfilePage() {
           </div>
         )}
 
-        {tiers.length === 0 && (
-          <div style={{background:'#111',border:'0.5px solid #1e1e1e',borderRadius:'12px',padding:'24px',marginBottom:'32px',textAlign:'center'}}>
-            <div style={{fontSize:'14px',color:'#555'}}>This creator hasn't set up subscription tiers yet.</div>
-          </div>
-        )}
-
         <div style={{fontSize:'18px',fontWeight:'700',marginBottom:'16px'}}>Posts ({posts.length})</div>
         {posts.length === 0 ? (
           <div style={{background:'#111',border:'0.5px solid #1e1e1e',borderRadius:'12px',padding:'40px',textAlign:'center',color:'#555',fontSize:'14px'}}>
             No posts yet
           </div>
         ) : (
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'2px'}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'4px'}}>
             {posts.map(post => (
-              <div key={post.id} style={{aspectRatio:'1',background:'#111',borderRadius:'4px',position:'relative',overflow:'hidden',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                {post.is_ppv && (
-                  <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.7)',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'8px'}}>
-                    <div style={{fontSize:'12px',fontWeight:'700',color:'#00aff0'}}>${(post.ppv_price/100).toFixed(2)}</div>
-                    <div style={{fontSize:'11px',color:'#555'}}>PPV</div>
+              <div key={post.id} style={{aspectRatio:'1',background:'#111',borderRadius:'4px',position:'relative',overflow:'hidden',cursor:'pointer'}}>
+                {post.media_urls && post.media_urls[0] ? (
+                  <img src={post.media_urls[0]} alt={post.title} style={{width:'100%',height:'100%',objectFit:'cover'}} />
+                ) : (
+                  <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'8px'}}>
+                    <div style={{fontSize:'12px',color:'#333'}}>{post.content_type}</div>
+                    {post.title && <div style={{fontSize:'11px',color:'#222',textAlign:'center',padding:'0 8px'}}>{post.title}</div>}
                   </div>
                 )}
-                <div style={{fontSize:'12px',color:'#333'}}>{post.content_type}</div>
+                {post.is_ppv && (
+                  <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.6)',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'4px'}}>
+                    <div style={{fontSize:'14px',fontWeight:'700',color:'#00aff0'}}>${(post.ppv_price/100).toFixed(2)}</div>
+                    <div style={{fontSize:'10px',color:'#555'}}>PPV</div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
